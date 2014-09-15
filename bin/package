@@ -61,6 +61,7 @@ excluded_files=(
   'cf.Gemfile.lock'
   'bin/package'
   'buildpack-packager/'
+  'ruby_buildpack*.zip'
 )
 
 BIN="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
