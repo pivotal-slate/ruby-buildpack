@@ -2,27 +2,43 @@ $: << 'cf_spec'
 require 'cf_spec_helper'
 
 describe 'Rack App' do
-  subject(:app) { Machete.deploy_app(app_name) }
-  let(:app_name) { 'sinatra_web_app' }
-  let(:browser) { Machete::Browser.new(app) }
+  let(:browser) { Machete::Browser.new }
+  let(:firewall_log) { Machete::FirewallLog.new }
+  let(:focker) { Machete::Focker.new }
 
-  context 'in an offline environment', if: Machete::BuildpackMode.offline? do
+  before(:all) do # FIXME can this be reused?
+    `docker rm cloudfocker-staging 2>&1`
+    sleep 1
+  end
+
+  context 'in an offline environment' do
+    before do
+      Machete.use_offline_environment
+    end
+
     specify do
-      expect(app).to be_running
+      focker.deploy_app('./cf_spec/fixtures/sinatra_web_app')
+      expect(focker).to have_successfully_deployed_app
 
-      browser.visit_path('/')
-      expect(browser).to have_body('Hello world!')
+      browser.visit('/')
 
-      expect(app.host).not_to have_internet_traffic
+      expect(firewall_log).to_not have_egress_attempts
     end
   end
 
-  context 'in an online environment', if: Machete::BuildpackMode.online? do
-    specify do
-      expect(app).to be_running
+  context 'in an online environment' do
+    before do
+      Machete.use_online_environment
+    end
 
-      browser.visit_path('/')
+    specify do
+      focker.deploy_app('./cf_spec/fixtures/sinatra_web_app')
+
+      expect(focker).to have_successfully_deployed_app
+
+      browser.visit('/')
       expect(browser).to have_body('Hello world!')
+
     end
   end
 end
