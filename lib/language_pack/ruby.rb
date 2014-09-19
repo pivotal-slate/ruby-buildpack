@@ -214,7 +214,7 @@ private
         @ruby_versions = YAML::load_file("ruby_versions.yml")
       end
     end
-
+    puts @ruby_versions
     @ruby_versions
   end
 
